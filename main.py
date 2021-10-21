@@ -2,7 +2,7 @@ import discord
 import asyncio
 
 client = discord.Client()
-answer = ['Total Hits']
+answer = ['Hits']
 text = open("save.txt", "r")
 reader = text.readlines()
 day = int(reader[0])
@@ -26,6 +26,7 @@ async def on_message(message):
     global save
 
     if message.content.startswith('/reset') and message.author != client.user:
+        await message.delete()
         day = 0
         store = 0
         save = open("save.txt", "w")
@@ -34,7 +35,8 @@ async def on_message(message):
         await message.channel.send('===============================\nOk, Resetting Clan Battle')
 
     if message.content.startswith('===============================\nDay ') and message.author == client.user:
-        emoji = ('1️⃣', '2️⃣', '3️⃣', '⏪')
+        emoji = (f'<:physical:896277992966344714>', '<:physical2:896277452320542720>', '<:magic:896274632477376532>',
+                 '❓', '⏪')
         for x in emoji:
             await message.add_reaction(x)
         return
@@ -43,31 +45,26 @@ async def on_message(message):
         await message.delete()
         day += 1
         store = await message.channel.send(f'===============================\nDay {str(day)} of Clan Battle\n'
-                                           'React :one: For your First hit\nReact :two: For your Second hit\n'
-                                           'React :three: For your Third hit\nReact :rewind: If you have Reset an '
-                                           'attack')
+                                           'React <:physical:896277992966344714> For your First Physical Hit\n'
+                                           'React <:physical2:896277452320542720> For your Second Physical Hit\n'
+                                           'React <:magic:896274632477376532> For your First Magical Hit\n'
+                                           'React ❓ For a Third Physical or Magical Hit\n'
+                                           'React :rewind: If you have Reset An Attack')
         store = store.id
         save = open("save.txt", "w")
         save.writelines([f'{str(day)}\n', str(store)])
         save.close()
         return
 
-    elif day == 5 and message.author != client.user and message.content.startswith('/next'):
-        await message.delete()
-        day = 0
-        save = open("save.txt", "w")
-        save.writelines([f'{str(day)}\n', str(store)])
-        save.close()
-        await message.channel.send('===============================\nClan Battle has ended\nGood Job Abyss')
-        return
-
     if message.content.startswith('/start') and day == 0 and message.author != client.user:
         await message.delete()
         day += 1
         store = await message.channel.send(f'===============================\nDay {str(day)} of Clan Battle\n'
-                                           'React :one: For your First hit\nReact :two: For your Second hit\n'
-                                           'React :three: For your Third hit\nReact :rewind: If you have Reset an '
-                                           'attack')
+                                           'React <:physical:896277992966344714> For your First Physical Hit\n'
+                                           'React <:physical2:896277452320542720> For your Second Physical Hit\n'
+                                           'React <:magic:896274632477376532> For your First Magical Hit\n'
+                                           'React ❓ For a Third Physical or Magical Hit\n'
+                                           'React :rewind: If you have Reset An Attack')
         store = store.id
         save = open("save.txt", "w")
         save.writelines([f'{str(day)}\n', str(store)])
@@ -75,42 +72,68 @@ async def on_message(message):
         return
 
     if message.content.startswith('/hits') and message.author != client.user and day != 0:
-        hitlist = {}
+        physicallist = {}
+        magicallist = {}
+        clown = {}
         skip = []
+        total = {}
         await message.delete()
         hits = await message.channel.history().find(lambda m: m.id == store)
         react = hits.reactions
 
         for y in await react[0].users().flatten():
             user = str(y)
-            hitlist[user] = 1
+            physicallist[user] = 1
+            magicallist[user] = 0
+            total[user] = 1
         for y in await react[1].users().flatten():
             user = str(y)
-            if user not in hitlist:
-                hitlist.update({user: 1})
+            if user not in physicallist:
+                physicallist.update({user: 1})
             else:
-                count = hitlist[user]
-                hitlist.update({user: count + 1})
+                count = physicallist[user]
+                physicallist.update({user: count + 1})
+            if user not in total:
+                total.update({user: 1})
+            if user not in magicallist:
+                magicallist.update({user: 0})
         for y in await react[2].users().flatten():
             user = str(y)
-            if user not in hitlist:
-                hitlist.update({user: 1})
-            else:
-                count = hitlist[user]
-                hitlist.update({user: count + 1})
+            magicallist.update({user: 1})
+            if user not in total:
+                total.update({user: 1})
+            if user not in physicallist:
+                physicallist.update({user: 0})
         for y in await react[3].users().flatten():
             user = str(y)
+            clown[user] = 1
+            if user not in total:
+                total.update({user: 1})
+        for y in await react[4].users().flatten():
+            user = str(y)
             skip.append(user)
-        hitlist.pop('BotBot#4939')
+            if user not in total:
+                total.update({user: 1})
+        physicallist.pop('BotBot#4939')
+        magicallist.pop('BotBot#4939')
+        total.pop('BotBot#4939')
+        clown.pop('BotBot#4939')
         skip.pop(0)
-        for y in hitlist:
+
+        for y in total:
             if y in skip:
-                answer.append(f"{y} = {hitlist[y]}/3 hits | Skip Used")
+                if y in clown:
+                    answer.append(f"{str(y)} = {physicallist[y]} P hits | {magicallist[y]} M hit | 1 ? hit | Skip Used")
+                else:
+                    answer.append(f"{str(y)} = {physicallist[y]} P hits | {magicallist[y]} M hit | Skip Used")
             else:
-                answer.append(f"{y} = {hitlist[y]}/3 hits | Skip Available")
+                if y in clown:
+                    answer.append(f"{str(y)} = {physicallist[y]} P hits | {magicallist[y]} M hit | 1 ? hit")
+                else:
+                    answer.append(f"{str(y)} = {physicallist[y]} P hits | {magicallist[y]} M hit")
         await message.channel.send('\n'.join('{}' for _ in range(len(answer))).format(*answer))
         answer.clear()
-        answer.append('Total Hits')
+        answer.append('Hits')
         return
 
     if message.content.startswith('\n'.join('{}' for _ in range(len(answer))).format(*answer)):
