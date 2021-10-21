@@ -142,4 +142,4 @@ async def on_message(message):
         return
 
 
-asyncio.run(client.run('NTgxMjg1OTQxMDUwNzM2NjUw.XOdCuA.MR6mdDZWQ7Td4HUDdeAreayt0kI'))
+asyncio.run(client.run('NTgxMjg1OTQxMDUwNzM2NjUw.XOdCuA.azsWK8YEdPYW1lZwBkCdduNJKpY'))
