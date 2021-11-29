@@ -114,10 +114,10 @@ async def on_message(message):
             skip.append(user)
             if user not in total:
                 total.update({user: 1})
-        physicallist.pop('BotBot#4939')
-        magicallist.pop('BotBot#4939')
-        total.pop('BotBot#4939')
-        clown.pop('BotBot#4939')
+        physicallist.pop('')
+        magicallist.pop('')
+        total.pop('')
+        clown.pop('')
         skip.pop(0)
 
         for y in total:
